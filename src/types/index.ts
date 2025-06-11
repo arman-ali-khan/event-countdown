@@ -4,7 +4,8 @@ export interface CountdownEvent {
   description?: string;
   eventDate: string;
   eventType: 'wedding' | 'birthday' | 'product-launch' | 'custom';
-  backgroundImage?: string;
+  backgroundImage?: string; // Desktop background image
+  mobileBackgroundImage?: string; // Mobile background image
   isPublic: boolean;
   createdAt: string;
   userId?: string; // Add userId to associate events with users
@@ -22,7 +23,8 @@ export interface EventFormData {
   description: string;
   eventDate: string;
   eventType: 'wedding' | 'birthday' | 'product-launch' | 'custom';
-  backgroundImage?: File;
+  backgroundImage?: File; // Desktop background image
+  mobileBackgroundImage?: File; // Mobile background image
   isPublic: boolean;
 }
 

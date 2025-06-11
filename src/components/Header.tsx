@@ -16,7 +16,7 @@ const Header: React.FC = () => {
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg group-hover:scale-105 transition-transform duration-200">
               <Calendar className="w-6 h-6 text-white" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
               CountdownBuilder
             </span>
           </Link>
@@ -29,7 +29,7 @@ const Header: React.FC = () => {
                   className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
                   <LayoutDashboard className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dashboard</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">Dashboard</span>
                 </Link>
                 
                 {user.isAdmin && (
@@ -38,13 +38,13 @@ const Header: React.FC = () => {
                     className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors duration-200"
                   >
                     <Shield className="w-4 h-4 text-purple-700 dark:text-purple-300" />
-                    <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Admin</span>
+                    <span className="text-sm font-medium text-purple-700 dark:text-purple-300 hidden sm:block">Admin</span>
                   </Link>
                 )}
                 
                 <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                   <User className="w-4 h-4 text-gray-700 dark:text-gray-300" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">{user.name}</span>
                 </div>
                 
                 <button

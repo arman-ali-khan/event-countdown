@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X } from 'lucide-react';
+import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X, Image, Monitor, Smartphone } from 'lucide-react';
 import { EventFormData, CountdownEvent } from '../types';
 import { saveEvent, generateRandomId } from '../utils/eventStorage';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +15,8 @@ const EventForm: React.FC = () => {
     eventType: 'custom',
     isPublic: true
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(null);
+  const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const eventTypes = [
@@ -25,7 +26,7 @@ const EventForm: React.FC = () => {
     { value: 'custom', label: 'Custom Event', icon: Sparkles, color: 'text-blue-500' }
   ];
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDesktopImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
@@ -43,17 +44,51 @@ const EventForm: React.FC = () => {
       setFormData({ ...formData, backgroundImage: file });
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        setDesktopImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = () => {
-    setImagePreview(null);
+  const handleMobileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
+      }
+      
+      // Validate file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB.');
+        return;
+      }
+
+      setFormData({ ...formData, mobileBackgroundImage: file });
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setMobileImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeDesktopImage = () => {
+    setDesktopImagePreview(null);
     setFormData({ ...formData, backgroundImage: undefined });
     // Reset the file input
-    const fileInput = document.getElementById('backgroundImage') as HTMLInputElement;
+    const fileInput = document.getElementById('desktopBackgroundImage') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  const removeMobileImage = () => {
+    setMobileImagePreview(null);
+    setFormData({ ...formData, mobileBackgroundImage: undefined });
+    // Reset the file input
+    const fileInput = document.getElementById('mobileBackgroundImage') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
     }
@@ -74,12 +109,19 @@ const EventForm: React.FC = () => {
       }
 
       const eventId = generateRandomId();
-      let backgroundImageUrl = '';
+      let desktopBackgroundUrl = '';
+      let mobileBackgroundUrl = '';
 
       if (formData.backgroundImage) {
         // In a real app, you'd upload to a cloud service
         // For demo purposes, we'll use the preview URL
-        backgroundImageUrl = imagePreview || '';
+        desktopBackgroundUrl = desktopImagePreview || '';
+      }
+
+      if (formData.mobileBackgroundImage) {
+        // In a real app, you'd upload to a cloud service
+        // For demo purposes, we'll use the preview URL
+        mobileBackgroundUrl = mobileImagePreview || '';
       }
 
       const newEvent: CountdownEvent = {
@@ -88,7 +130,8 @@ const EventForm: React.FC = () => {
         description: formData.description || undefined,
         eventDate: formData.eventDate,
         eventType: formData.eventType,
-        backgroundImage: backgroundImageUrl,
+        backgroundImage: desktopBackgroundUrl,
+        mobileBackgroundImage: mobileBackgroundUrl,
         isPublic: formData.isPublic,
         createdAt: new Date().toISOString(),
         userId: user?.id // Associate event with current user
@@ -221,59 +264,154 @@ const EventForm: React.FC = () => {
             />
           </div>
 
-          {/* Background Image Upload */}
+          {/* Desktop Background Image Upload */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Background Image (Optional)
+              <div className="flex items-center space-x-2">
+                <Monitor className="w-4 h-4" />
+                <span>Desktop Background Image (Optional)</span>
+              </div>
             </label>
             
-            {imagePreview ? (
-              <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors duration-200"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+            <div className="relative">
+              {desktopImagePreview ? (
+                <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                  <div className="relative w-full h-48">
+                    <img
+                      src={desktopImagePreview}
+                      alt="Desktop Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          onClick={removeDesktopImage}
+                          className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors duration-200 flex items-center space-x-2"
+                        >
+                          <X className="w-4 h-4" />
+                          <span className="text-sm font-medium">Remove</span>
+                        </button>
+                        <label className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors duration-200 flex items-center space-x-2 cursor-pointer">
+                          <Upload className="w-4 h-4" />
+                          <span className="text-sm font-medium">Change</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleDesktopImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Desktop background image • Recommended: 1920x1080px
+                    </p>
+                  </div>
                 </div>
-                <div className="absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
-                  Click to change image
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 cursor-pointer">
+                  <div className="p-8 text-center">
+                    <div className="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-3">
+                      <Monitor className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2">
+                      Desktop Background
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      Upload an image for desktop view
+                    </p>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      PNG, JPG up to 10MB • Recommended: 1920x1080px
+                    </div>
+                  </div>
+                  <input
+                    type="file"
+                    id="desktopBackgroundImage"
+                    accept="image/*"
+                    onChange={handleDesktopImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
                 </div>
-                <input
-                  type="file"
-                  id="backgroundImage"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Background Image Upload */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <div className="flex items-center space-x-2">
+                <Smartphone className="w-4 h-4" />
+                <span>Mobile Background Image (Optional)</span>
               </div>
-            ) : (
-              <div className="relative">
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 cursor-pointer">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400 mb-2 font-medium">
-                    Click to upload a background image
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">
-                    PNG, JPG up to 10MB
-                  </p>
+            </label>
+            
+            <div className="relative">
+              {mobileImagePreview ? (
+                <div className="relative border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                  <div className="relative w-full h-48">
+                    <img
+                      src={mobileImagePreview}
+                      alt="Mobile Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          onClick={removeMobileImage}
+                          className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors duration-200 flex items-center space-x-2"
+                        >
+                          <X className="w-4 h-4" />
+                          <span className="text-sm font-medium">Remove</span>
+                        </button>
+                        <label className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors duration-200 flex items-center space-x-2 cursor-pointer">
+                          <Upload className="w-4 h-4" />
+                          <span className="text-sm font-medium">Change</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleMobileImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Mobile background image • Recommended: 1080x1920px
+                    </p>
+                  </div>
                 </div>
-                <input
-                  type="file"
-                  id="backgroundImage"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </div>
-            )}
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 cursor-pointer">
+                  <div className="p-8 text-center">
+                    <div className="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-3">
+                      <Smartphone className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2">
+                      Mobile Background
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      Upload an image for mobile view
+                    </p>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      PNG, JPG up to 10MB • Recommended: 1080x1920px
+                    </div>
+                  </div>
+                  <input
+                    type="file"
+                    id="mobileBackgroundImage"
+                    accept="image/*"
+                    onChange={handleMobileImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Public/Private Toggle */}

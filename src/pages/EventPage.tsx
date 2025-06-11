@@ -48,9 +48,33 @@ const EventPage: React.FC = () => {
   }
 
   const eventDate = new Date(event.eventDate);
-  const backgroundStyle = event.backgroundImage
-    ? { backgroundImage: `url(${event.backgroundImage})` }
-    : {};
+  
+  // Determine which background image to use based on screen size
+  const getBackgroundStyle = () => {
+    // Check if we have both desktop and mobile images
+    if (event.backgroundImage && event.mobileBackgroundImage) {
+      return {
+        backgroundImage: `url(${event.backgroundImage})`,
+        '@media (max-width: 768px)': {
+          backgroundImage: `url(${event.mobileBackgroundImage})`
+        }
+      };
+    }
+    
+    // Use desktop image for all screens if only desktop is available
+    if (event.backgroundImage) {
+      return { backgroundImage: `url(${event.backgroundImage})` };
+    }
+    
+    // Use mobile image for all screens if only mobile is available
+    if (event.mobileBackgroundImage) {
+      return { backgroundImage: `url(${event.mobileBackgroundImage})` };
+    }
+    
+    return {};
+  };
+
+  const backgroundStyle = getBackgroundStyle();
 
   const getThemeClasses = () => {
     switch (event.eventType) {
@@ -78,70 +102,145 @@ const EventPage: React.FC = () => {
     }
   };
 
+  const hasBackgroundImage = event.backgroundImage || event.mobileBackgroundImage;
+
   return (
-    <div 
-      className={`min-h-screen relative ${!event.backgroundImage ? getDefaultBackground() : ''}`}
-      style={backgroundStyle.backgroundImage ? {
-        ...backgroundStyle,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      } : {}}
-    >
-      {/* Overlay */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${getThemeClasses()}`}></div>
-      
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-6">
-        <div className="max-w-6xl mx-auto text-center">
-          {/* Event Title */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-            {event.title}
-          </h1>
-          
-          {/* Event Description */}
-          {event.description && (
-            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-              {event.description}
-            </p>
-          )}
-          
-          {/* Countdown Timer */}
-          <div className="mb-12">
-            <CountdownTimer 
-              targetDate={event.eventDate} 
-              eventType={event.eventType}
-            />
-          </div>
-          
-          {/* Event Details */}
-          <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-white/80">
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5" />
-              <span className="text-lg font-medium">
-                {eventDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
+    <>
+      {/* Desktop Background */}
+      <div 
+        className={`min-h-screen relative hidden md:block ${!hasBackgroundImage ? getDefaultBackground() : ''}`}
+        style={event.backgroundImage ? {
+          backgroundImage: `url(${event.backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        } : {}}
+      >
+        {/* Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${getThemeClasses()}`}></div>
+        
+        {/* Content */}
+        <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-6">
+          <div className="max-w-6xl mx-auto text-center">
+            {/* Event Title */}
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              {event.title}
+            </h1>
+            
+            {/* Event Description */}
+            {event.description && (
+              <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
+                {event.description}
+              </p>
+            )}
+            
+            {/* Countdown Timer */}
+            <div className="mb-12">
+              <CountdownTimer 
+                targetDate={event.eventDate} 
+                eventType={event.eventType}
+              />
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5" />
-              <span className="text-lg font-medium">
-                {eventDate.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                })}
-              </span>
+            {/* Event Details */}
+            <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-white/80">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-5 h-5" />
+                <span className="text-lg font-medium">
+                  {eventDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Clock className="w-5 h-5" />
+                <span className="text-lg font-medium">
+                  {eventDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  })}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile Background */}
+      <div 
+        className={`min-h-screen relative md:hidden ${!hasBackgroundImage ? getDefaultBackground() : ''}`}
+        style={event.mobileBackgroundImage ? {
+          backgroundImage: `url(${event.mobileBackgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        } : event.backgroundImage ? {
+          backgroundImage: `url(${event.backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        } : {}}
+      >
+        {/* Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${getThemeClasses()}`}></div>
+        
+        {/* Content */}
+        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+          <div className="max-w-6xl mx-auto text-center">
+            {/* Event Title */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
+              {event.title}
+            </h1>
+            
+            {/* Event Description */}
+            {event.description && (
+              <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+                {event.description}
+              </p>
+            )}
+            
+            {/* Countdown Timer */}
+            <div className="mb-8">
+              <CountdownTimer 
+                targetDate={event.eventDate} 
+                eventType={event.eventType}
+              />
+            </div>
+            
+            {/* Event Details */}
+            <div className="flex flex-col items-center justify-center space-y-3 text-white/80">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4" />
+                <span className="text-base font-medium">
+                  {eventDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Clock className="w-4 h-4" />
+                <span className="text-base font-medium">
+                  {eventDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 
