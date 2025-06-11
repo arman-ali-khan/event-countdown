@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Users } from 'lucide-react';
 import CountdownTimer from '../components/CountdownTimer';
+import JoinEventForm from '../components/JoinEventForm';
 import { getEventById } from '../utils/eventStorage';
 import { CountdownEvent } from '../types';
 
@@ -9,6 +10,7 @@ const EventPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<CountdownEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showJoinForm, setShowJoinForm] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -123,7 +125,7 @@ const EventPage: React.FC = () => {
         <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-6">
           <div className="max-w-6xl mx-auto text-center">
             {/* Event Title */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
               {event.title}
             </h1>
             
@@ -140,6 +142,17 @@ const EventPage: React.FC = () => {
                 targetDate={event.eventDate} 
                 eventType={event.eventType}
               />
+            </div>
+            
+            {/* Join Event Button */}
+            <div className="mb-12">
+              <button
+                onClick={() => setShowJoinForm(true)}
+                className="inline-flex items-center px-8 py-4 bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200 transform hover:scale-105 border border-white/20 shadow-lg"
+              >
+                <Users className="w-5 h-5 mr-2" />
+                Join This Event
+              </button>
             </div>
             
             {/* Event Details */}
@@ -212,6 +225,17 @@ const EventPage: React.FC = () => {
               />
             </div>
             
+            {/* Join Event Button */}
+            <div className="mb-8">
+              <button
+                onClick={() => setShowJoinForm(true)}
+                className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200 transform hover:scale-105 border border-white/20 shadow-lg"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Join This Event
+              </button>
+            </div>
+            
             {/* Event Details */}
             <div className="flex flex-col items-center justify-center space-y-3 text-white/80">
               <div className="flex items-center space-x-2">
@@ -240,6 +264,14 @@ const EventPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Join Event Form Modal */}
+      <JoinEventForm
+        isOpen={showJoinForm}
+        onClose={() => setShowJoinForm(false)}
+        eventTitle={event.title}
+        eventId={event.id}
+      />
     </>
   );
 };

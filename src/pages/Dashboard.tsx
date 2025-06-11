@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
           ) : (
             <>
               {/* Desktop Grid View */}
-              <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="hidden lg:grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
                 {filteredEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
                   return (
@@ -383,7 +383,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Mobile Card View */}
-              <div className="lg:hidden space-y-4">
+              <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-2 space-y-4">
                 {filteredEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
                   const isExpanded = expandedCards.has(event.id);

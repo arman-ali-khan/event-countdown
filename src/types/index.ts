@@ -62,3 +62,14 @@ export interface SystemSettings {
   maintenanceMode: boolean;
   featuredEvents: string[];
 }
+
+export interface EventJoinRequest {
+  id: string;
+  eventId: string;
+  eventTitle: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message?: string;
+  joinedAt: string;
+}

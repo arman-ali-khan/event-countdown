@@ -67,10 +67,10 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, eventType }
           className="text-center group"
           style={{ animationDelay: `${index * 100}ms` }}
         >
-          <div className={`relative p-6 md:p-8 rounded-2xl bg-gradient-to-br ${getThemeColors()} shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105`}>
-            <div className="absolute inset-0 bg-white/10 rounded-2xl backdrop-blur-sm"></div>
+          <div className={`relative p-3 sm:p-4 2xl:p-5 rounded-2xl md:bg-gradient-to-br ${getThemeColors()} shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105`}>
+            <div className="absolute inset-0 bg-white/10 rounded-2xl backdrop-blur-md"></div>
             <div className="relative">
-              <div className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-2 font-mono">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 font-mono">
                 {formatNumber(unit.value)}
               </div>
               <div className="text-sm md:text-base lg:text-lg font-semibold text-white/90 uppercase tracking-wider">
