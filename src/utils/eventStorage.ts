@@ -25,8 +25,23 @@ export const getEventBySlug = (slug: string): CountdownEvent | null => {
   return events.find(event => event.slug === slug) || null;
 };
 
+export const getEventById = (id: string): CountdownEvent | null => {
+  const events = getEvents();
+  return events.find(event => event.id === id) || null;
+};
+
+export const deleteEvent = (id: string): void => {
+  const events = getEvents();
+  const filteredEvents = events.filter(event => event.id !== id);
+  localStorage.setItem(EVENTS_KEY, JSON.stringify(filteredEvents));
+};
+
 export const getPublicEvents = (): CountdownEvent[] => {
   return getEvents().filter(event => event.isPublic);
+};
+
+export const getUserEvents = (userId: string): CountdownEvent[] => {
+  return getEvents().filter(event => event.userId === userId);
 };
 
 export const generateSlug = (title: string): string => {
@@ -45,4 +60,8 @@ export const generateSlug = (title: string): string => {
   }
   
   return slug;
+};
+
+export const generateRandomId = (): string => {
+  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 };

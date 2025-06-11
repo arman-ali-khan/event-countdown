@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X } from 'lucide-react';
 import { EventFormData, CountdownEvent } from '../types';
-import { saveEvent, generateSlug } from '../utils/eventStorage';
+import { saveEvent, generateSlug, generateRandomId } from '../utils/eventStorage';
+import { useAuth } from '../contexts/AuthContext';
 
 const EventForm: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
     description: '',
@@ -81,7 +83,7 @@ const EventForm: React.FC = () => {
       }
 
       const newEvent: CountdownEvent = {
-        id: Date.now().toString(),
+        id: generateRandomId(),
         slug,
         title: formData.title,
         description: formData.description || undefined,
@@ -89,11 +91,18 @@ const EventForm: React.FC = () => {
         eventType: formData.eventType,
         backgroundImage: backgroundImageUrl,
         isPublic: formData.isPublic,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        userId: user?.id // Associate event with current user
       };
 
       saveEvent(newEvent);
-      navigate(`/event/${slug}`);
+      
+      // Navigate to dashboard if user is logged in, otherwise to event page
+      if (user) {
+        navigate('/dashboard');
+      } else {
+        navigate(`/event/${slug}`);
+      }
     } catch (error) {
       console.error('Error creating event:', error);
       alert('There was an error creating your event. Please try again.');

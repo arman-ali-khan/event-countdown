@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Moon, Sun } from 'lucide-react';
+import { Calendar, Moon, Sun, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
@@ -20,6 +22,46 @@ const Header: React.FC = () => {
           </Link>
 
           <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dashboard</span>
+                </Link>
+                
+                <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                  <User className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                </div>
+                
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
