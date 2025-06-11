@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Moon, Sun, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Calendar, Moon, Sun, User, LogOut, LayoutDashboard, Shield } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -31,6 +31,16 @@ const Header: React.FC = () => {
                   <LayoutDashboard className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dashboard</span>
                 </Link>
+                
+                {user.isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors duration-200"
+                  >
+                    <Shield className="w-4 h-4 text-purple-700 dark:text-purple-300" />
+                    <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Admin</span>
+                  </Link>
+                )}
                 
                 <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                   <User className="w-4 h-4 text-gray-700 dark:text-gray-300" />

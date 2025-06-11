@@ -31,6 +31,7 @@ export interface User {
   email: string;
   name: string;
   createdAt: string;
+  isAdmin?: boolean;
 }
 
 export interface AuthContextType {
@@ -39,4 +40,23 @@ export interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalEvents: number;
+  activeEvents: number;
+  publicEvents: number;
+  recentSignups: number;
+  popularEventTypes: { type: string; count: number }[];
+}
+
+export interface SystemSettings {
+  siteName: string;
+  allowRegistration: boolean;
+  requireEmailVerification: boolean;
+  maxEventsPerUser: number;
+  maxImageSize: number;
+  maintenanceMode: boolean;
+  featuredEvents: string[];
 }

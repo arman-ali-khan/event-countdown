@@ -25,6 +25,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+    
+    // Create default admin user if no users exist
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.length === 0) {
+      const defaultAdmin: User = {
+        id: 'admin-1',
+        email: 'admin@countdownbuilder.com',
+        name: 'Admin User',
+        createdAt: new Date().toISOString(),
+        isAdmin: true
+      };
+      
+      const adminWithPassword = { ...defaultAdmin, password: 'admin123' };
+      localStorage.setItem('users', JSON.stringify([adminWithPassword]));
+    }
+    
     setIsLoading(false);
   }, []);
 
@@ -43,7 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         email,
         name,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        isAdmin: false
       };
 
       // Save user credentials (in real app, this would be handled by backend)

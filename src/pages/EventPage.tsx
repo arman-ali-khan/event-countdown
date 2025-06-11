@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar, Clock } from 'lucide-react';
 import CountdownTimer from '../components/CountdownTimer';
-import SocialShare from '../components/SocialShare';
 import { getEventById } from '../utils/eventStorage';
 import { CountdownEvent } from '../types';
 
@@ -11,7 +9,6 @@ const EventPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<CountdownEvent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -50,7 +47,6 @@ const EventPage: React.FC = () => {
     return <Navigate to="/" replace />;
   }
 
-  const currentUrl = window.location.href;
   const eventDate = new Date(event.eventDate);
   const backgroundStyle = event.backgroundImage
     ? { backgroundImage: `url(${event.backgroundImage})` }
@@ -96,98 +92,54 @@ const EventPage: React.FC = () => {
       <div className={`absolute inset-0 bg-gradient-to-br ${getThemeClasses()}`}></div>
       
       {/* Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header */}
-        <header className="p-4 md:p-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <Link
-              to="/"
-              className="flex items-center space-x-2 text-white hover:text-gray-200 transition-colors duration-200"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back to Home</span>
-            </Link>
-            
-            <button
-              onClick={() => setShowShare(!showShare)}
-              className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition-all duration-200"
-            >
-              <Share2 className="w-5 h-5" />
-              <span className="font-medium">Share</span>
-            </button>
+      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-6">
+        <div className="max-w-6xl mx-auto text-center">
+          {/* Event Title */}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            {event.title}
+          </h1>
+          
+          {/* Event Description */}
+          {event.description && (
+            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
+              {event.description}
+            </p>
+          )}
+          
+          {/* Countdown Timer */}
+          <div className="mb-12">
+            <CountdownTimer 
+              targetDate={event.eventDate} 
+              eventType={event.eventType}
+            />
           </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center p-4 md:p-6">
-          <div className="max-w-6xl mx-auto text-center">
-            {/* Event Title */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              {event.title}
-            </h1>
-            
-            {/* Event Description */}
-            {event.description && (
-              <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-                {event.description}
-              </p>
-            )}
-            
-            {/* Countdown Timer */}
-            <div className="mb-12">
-              <CountdownTimer 
-                targetDate={event.eventDate} 
-                eventType={event.eventType}
-              />
+          
+          {/* Event Details */}
+          <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-white/80">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5" />
+              <span className="text-lg font-medium">
+                {eventDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
             </div>
             
-            {/* Event Details */}
-            <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-white/80">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5" />
-                <span className="text-lg font-medium">
-                  {eventDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5" />
-                <span className="text-lg font-medium">
-                  {eventDate.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                  })}
-                </span>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Clock className="w-5 h-5" />
+              <span className="text-lg font-medium">
+                {eventDate.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}
+              </span>
             </div>
           </div>
-        </main>
-
-        {/* Share Panel */}
-        {showShare && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="max-w-md w-full">
-              <div className="mb-4">
-                <button
-                  onClick={() => setShowShare(false)}
-                  className="text-white hover:text-gray-300 transition-colors duration-200"
-                >
-                  <ArrowLeft className="w-6 h-6" />
-                </button>
-              </div>
-              <SocialShare 
-                url={currentUrl} 
-                title={`${event.title} - Countdown`}
-              />
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
