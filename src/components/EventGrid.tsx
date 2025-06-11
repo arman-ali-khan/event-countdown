@@ -62,7 +62,7 @@ const EventGrid: React.FC<EventGridProps> = ({ events, title, subtitle }) => {
           return (
             <Link
               key={event.id}
-              to={`/event/${event.slug}`}
+              to={`/event/${event.id}`}
               className="group block"
             >
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-2">

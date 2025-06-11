@@ -4,22 +4,22 @@ import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CountdownTimer from '../components/CountdownTimer';
 import SocialShare from '../components/SocialShare';
-import { getEventBySlug } from '../utils/eventStorage';
+import { getEventById } from '../utils/eventStorage';
 import { CountdownEvent } from '../types';
 
 const EventPage: React.FC = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<CountdownEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
-    if (slug) {
-      const foundEvent = getEventBySlug(slug);
+    if (id) {
+      const foundEvent = getEventById(id);
       setEvent(foundEvent);
     }
     setLoading(false);
-  }, [slug]);
+  }, [id]);
 
   useEffect(() => {
     if (event) {

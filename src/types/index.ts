@@ -1,6 +1,5 @@
 export interface CountdownEvent {
   id: string;
-  slug: string;
   title: string;
   description?: string;
   eventDate: string;

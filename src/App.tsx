@@ -21,7 +21,7 @@ function App() {
             <main>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/event/:slug" element={<EventPage />} />
+                <Route path="/event/:id" element={<EventPage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/create" element={<CreateEventPage />} />
                 <Route path="/edit/:id" element={<EditEventPage />} />

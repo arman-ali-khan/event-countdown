@@ -20,11 +20,6 @@ export const getEvents = (): CountdownEvent[] => {
   return stored ? JSON.parse(stored) : [];
 };
 
-export const getEventBySlug = (slug: string): CountdownEvent | null => {
-  const events = getEvents();
-  return events.find(event => event.slug === slug) || null;
-};
-
 export const getEventById = (id: string): CountdownEvent | null => {
   const events = getEvents();
   return events.find(event => event.id === id) || null;
@@ -44,24 +39,19 @@ export const getUserEvents = (userId: string): CountdownEvent[] => {
   return getEvents().filter(event => event.userId === userId);
 };
 
-export const generateSlug = (title: string): string => {
-  const baseSlug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-  
-  const events = getEvents();
-  let slug = baseSlug;
-  let counter = 1;
-  
-  while (events.some(event => event.slug === slug)) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
+export const generateRandomId = (): string => {
+  // Generate a YouTube-style random ID (11 characters)
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  let result = '';
+  for (let i = 0; i < 11; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   
-  return slug;
-};
-
-export const generateRandomId = (): string => {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  // Ensure uniqueness by checking existing events
+  const events = getEvents();
+  if (events.some(event => event.id === result)) {
+    return generateRandomId(); // Recursively generate until unique
+  }
+  
+  return result;
 };

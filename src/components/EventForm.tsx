@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X } from 'lucide-react';
 import { EventFormData, CountdownEvent } from '../types';
-import { saveEvent, generateSlug, generateRandomId } from '../utils/eventStorage';
+import { saveEvent, generateRandomId } from '../utils/eventStorage';
 import { useAuth } from '../contexts/AuthContext';
 
 const EventForm: React.FC = () => {
@@ -73,7 +73,7 @@ const EventForm: React.FC = () => {
         return;
       }
 
-      const slug = generateSlug(formData.title);
+      const eventId = generateRandomId();
       let backgroundImageUrl = '';
 
       if (formData.backgroundImage) {
@@ -83,8 +83,7 @@ const EventForm: React.FC = () => {
       }
 
       const newEvent: CountdownEvent = {
-        id: generateRandomId(),
-        slug,
+        id: eventId,
         title: formData.title,
         description: formData.description || undefined,
         eventDate: formData.eventDate,
@@ -101,7 +100,7 @@ const EventForm: React.FC = () => {
       if (user) {
         navigate('/dashboard');
       } else {
-        navigate(`/event/${slug}`);
+        navigate(`/event/${eventId}`);
       }
     } catch (error) {
       console.error('Error creating event:', error);
