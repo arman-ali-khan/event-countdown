@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Settings, ToggleLeft, ToggleRight, Heart, Gift, Rocket, Sparkles } from 'lucide-react';
+import { Save, Settings, ToggleLeft, ToggleRight, Heart, Gift, Rocket, Sparkles, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { SystemSettings, EventType } from '../../types';
 import { getSystemSettings, updateSystemSettings } from '../../utils/adminStorage';
 
@@ -7,12 +7,32 @@ const AdminSettings: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [showCreateEventType, setShowCreateEventType] = useState(false);
+  const [editingEventType, setEditingEventType] = useState<string | null>(null);
+  const [newEventType, setNewEventType] = useState({
+    value: '',
+    label: '',
+    color: 'text-blue-500'
+  });
 
   const defaultEventTypes: EventType[] = [
     { value: 'wedding', label: 'Wedding', icon: Heart, color: 'text-rose-500', enabled: true },
     { value: 'birthday', label: 'Birthday', icon: Gift, color: 'text-purple-500', enabled: true },
     { value: 'product-launch', label: 'Product Launch', icon: Rocket, color: 'text-green-500', enabled: true },
     { value: 'custom', label: 'Custom Event', icon: Sparkles, color: 'text-blue-500', enabled: true }
+  ];
+
+  const colorOptions = [
+    { value: 'text-blue-500', label: 'Blue', class: 'bg-blue-500' },
+    { value: 'text-green-500', label: 'Green', class: 'bg-green-500' },
+    { value: 'text-red-500', label: 'Red', class: 'bg-red-500' },
+    { value: 'text-yellow-500', label: 'Yellow', class: 'bg-yellow-500' },
+    { value: 'text-purple-500', label: 'Purple', class: 'bg-purple-500' },
+    { value: 'text-pink-500', label: 'Pink', class: 'bg-pink-500' },
+    { value: 'text-indigo-500', label: 'Indigo', class: 'bg-indigo-500' },
+    { value: 'text-orange-500', label: 'Orange', class: 'bg-orange-500' },
+    { value: 'text-teal-500', label: 'Teal', class: 'bg-teal-500' },
+    { value: 'text-cyan-500', label: 'Cyan', class: 'bg-cyan-500' }
   ];
 
   useEffect(() => {
@@ -48,6 +68,57 @@ const AdminSettings: React.FC = () => {
     }
   };
 
+  const handleCreateEventType = () => {
+    if (!settings || !newEventType.value || !newEventType.label) return;
+
+    // Check if event type already exists
+    const customEventTypes = settings.customEventTypes || [];
+    if (customEventTypes.some(type => type.value === newEventType.value) || 
+        defaultEventTypes.some(type => type.value === newEventType.value)) {
+      setSaveMessage('Event type with this value already exists!');
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    const newCustomType = {
+      ...newEventType,
+      icon: Sparkles, // Default icon for custom types
+      enabled: true
+    };
+
+    const updatedCustomTypes = [...customEventTypes, newCustomType];
+    const updatedEnabledTypes = [...(settings.enabledEventTypes || []), newEventType.value];
+
+    setSettings({
+      ...settings,
+      customEventTypes: updatedCustomTypes,
+      enabledEventTypes: updatedEnabledTypes
+    });
+
+    // Reset form
+    setNewEventType({ value: '', label: '', color: 'text-blue-500' });
+    setShowCreateEventType(false);
+    setSaveMessage('New event type created! Don\'t forget to save settings.');
+    setTimeout(() => setSaveMessage(null), 3000);
+  };
+
+  const handleDeleteEventType = (eventTypeValue: string) => {
+    if (!settings) return;
+
+    const customEventTypes = settings.customEventTypes || [];
+    const updatedCustomTypes = customEventTypes.filter(type => type.value !== eventTypeValue);
+    const updatedEnabledTypes = (settings.enabledEventTypes || []).filter(type => type !== eventTypeValue);
+
+    setSettings({
+      ...settings,
+      customEventTypes: updatedCustomTypes,
+      enabledEventTypes: updatedEnabledTypes
+    });
+
+    setSaveMessage('Event type deleted! Don\'t forget to save settings.');
+    setTimeout(() => setSaveMessage(null), 3000);
+  };
+
   const toggleEventType = (eventTypeValue: string) => {
     if (!settings) return;
 
@@ -66,10 +137,20 @@ const AdminSettings: React.FC = () => {
     if (!settings) return defaultEventTypes;
 
     const enabledTypes = settings.enabledEventTypes || defaultEventTypes.map(t => t.value);
-    return defaultEventTypes.map(type => ({
-      ...type,
-      enabled: enabledTypes.includes(type.value)
-    }));
+    const customTypes = settings.customEventTypes || [];
+    
+    const allTypes = [
+      ...defaultEventTypes.map(type => ({
+        ...type,
+        enabled: enabledTypes.includes(type.value)
+      })),
+      ...customTypes.map(type => ({
+        ...type,
+        enabled: enabledTypes.includes(type.value)
+      }))
+    ];
+
+    return allTypes;
   };
 
   if (!settings) {
@@ -226,17 +307,111 @@ const AdminSettings: React.FC = () => {
 
         {/* Event Type Management */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-            Event Type Management
-          </h4>
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Event Type Management
+            </h4>
+            <button
+              onClick={() => setShowCreateEventType(true)}
+              className="flex items-center space-x-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Type</span>
+            </button>
+          </div>
           
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-            Enable or disable event types that users can choose from when creating countdown events.
+            Manage event types that users can choose from when creating countdown events.
           </p>
+
+          {/* Create New Event Type Form */}
+          {showCreateEventType && (
+            <div className="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="font-medium text-gray-900 dark:text-white">Create New Event Type</h5>
+                <button
+                  onClick={() => {
+                    setShowCreateEventType(false);
+                    setNewEventType({ value: '', label: '', color: 'text-blue-500' });
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Value (used in code)
+                  </label>
+                  <input
+                    type="text"
+                    value={newEventType.value}
+                    onChange={(e) => setNewEventType({ ...newEventType, value: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                    placeholder="e.g., conference, workshop"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Display Label
+                  </label>
+                  <input
+                    type="text"
+                    value={newEventType.label}
+                    onChange={(e) => setNewEventType({ ...newEventType, label: e.target.value })}
+                    placeholder="e.g., Conference, Workshop"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Color Theme
+                  </label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => setNewEventType({ ...newEventType, color: color.value })}
+                        className={`w-8 h-8 rounded-full ${color.class} ${
+                          newEventType.color === color.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                        }`}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 pt-2">
+                  <button
+                    onClick={handleCreateEventType}
+                    disabled={!newEventType.value || !newEventType.label}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Create Event Type
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCreateEventType(false);
+                      setNewEventType({ value: '', label: '', color: 'text-blue-500' });
+                    }}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200 text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4">
             {getEventTypes().map((eventType) => {
               const IconComponent = eventType.icon;
+              const isCustomType = !defaultEventTypes.some(dt => dt.value === eventType.value);
+              
               return (
                 <div
                   key={eventType.value}
@@ -253,31 +428,49 @@ const AdminSettings: React.FC = () => {
                       }`} />
                     </div>
                     <div>
-                      <h5 className={`font-medium ${
-                        eventType.enabled 
-                          ? 'text-gray-900 dark:text-white' 
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {eventType.label}
-                      </h5>
+                      <div className="flex items-center space-x-2">
+                        <h5 className={`font-medium ${
+                          eventType.enabled 
+                            ? 'text-gray-900 dark:text-white' 
+                            : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {eventType.label}
+                        </h5>
+                        {isCustomType && (
+                          <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full">
+                            Custom
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {eventType.enabled ? 'Available to users' : 'Hidden from users'}
                       </p>
                     </div>
                   </div>
                   
-                  <button
-                    onClick={() => toggleEventType(eventType.value)}
-                    className={`p-1 rounded-full transition-colors duration-200 ${
-                      eventType.enabled ? 'text-green-600' : 'text-gray-400'
-                    }`}
-                  >
-                    {eventType.enabled ? (
-                      <ToggleRight className="w-8 h-8" />
-                    ) : (
-                      <ToggleLeft className="w-8 h-8" />
+                  <div className="flex items-center space-x-2">
+                    {isCustomType && (
+                      <button
+                        onClick={() => handleDeleteEventType(eventType.value)}
+                        className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors duration-200"
+                        title="Delete custom event type"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     )}
-                  </button>
+                    <button
+                      onClick={() => toggleEventType(eventType.value)}
+                      className={`p-1 rounded-full transition-colors duration-200 ${
+                        eventType.enabled ? 'text-green-600' : 'text-gray-400'
+                      }`}
+                    >
+                      {eventType.enabled ? (
+                        <ToggleRight className="w-8 h-8" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -285,7 +478,7 @@ const AdminSettings: React.FC = () => {
 
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-300">
-              <strong>Note:</strong> Disabling an event type will hide it from the creation form, but existing events of that type will remain unchanged.
+              <strong>Note:</strong> Disabling an event type will hide it from the creation form, but existing events of that type will remain unchanged. Custom event types can be deleted permanently.
             </p>
           </div>
         </div>

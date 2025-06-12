@@ -64,6 +64,15 @@ export interface SystemSettings {
   maintenanceMode: boolean;
   featuredEvents: string[];
   enabledEventTypes: string[]; // New field for managing event types
+  customEventTypes?: CustomEventType[]; // New field for custom event types
+}
+
+export interface CustomEventType {
+  value: string;
+  label: string;
+  color: string;
+  icon?: any;
+  enabled: boolean;
 }
 
 export interface EventJoinRequest {

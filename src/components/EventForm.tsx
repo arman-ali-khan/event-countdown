@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X, Image, Monitor, Smartphone, Users } from 'lucide-react';
 import { EventFormData, CountdownEvent } from '../types';
 import { saveEvent, generateRandomId } from '../utils/eventStorage';
-import { getEnabledEventTypes } from '../utils/adminStorage';
+import { getEnabledEventTypes, getSystemSettings } from '../utils/adminStorage';
 import { useAuth } from '../contexts/AuthContext';
 
 const EventForm: React.FC = () => {
@@ -23,12 +23,25 @@ const EventForm: React.FC = () => {
 
   // Get enabled event types from admin settings
   const enabledEventTypes = getEnabledEventTypes();
+  const systemSettings = getSystemSettings();
   
-  const allEventTypes = [
+  const defaultEventTypes = [
     { value: 'wedding', label: 'Wedding', icon: Heart, color: 'text-rose-500' },
     { value: 'birthday', label: 'Birthday', icon: Gift, color: 'text-purple-500' },
     { value: 'product-launch', label: 'Product Launch', icon: Rocket, color: 'text-green-500' },
     { value: 'custom', label: 'Custom Event', icon: Sparkles, color: 'text-blue-500' }
+  ];
+
+  // Combine default and custom event types
+  const customEventTypes = systemSettings.customEventTypes || [];
+  const allEventTypes = [
+    ...defaultEventTypes,
+    ...customEventTypes.map(customType => ({
+      value: customType.value,
+      label: customType.label,
+      icon: Sparkles, // Default icon for custom types
+      color: customType.color
+    }))
   ];
 
   // Filter event types based on admin settings
