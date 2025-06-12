@@ -9,6 +9,7 @@ export interface CountdownEvent {
   isPublic: boolean;
   createdAt: string;
   userId?: string; // Add userId to associate events with users
+  allowJoin?: boolean; // New field to control join button visibility
 }
 
 export interface CountdownTime {
@@ -26,6 +27,7 @@ export interface EventFormData {
   backgroundImage?: File; // Desktop background image
   mobileBackgroundImage?: File; // Mobile background image
   isPublic: boolean;
+  allowJoin?: boolean; // New field for join button toggle
 }
 
 export interface User {
@@ -61,6 +63,7 @@ export interface SystemSettings {
   maxImageSize: number;
   maintenanceMode: boolean;
   featuredEvents: string[];
+  enabledEventTypes: string[]; // New field for managing event types
 }
 
 export interface EventJoinRequest {
@@ -72,4 +75,12 @@ export interface EventJoinRequest {
   phone?: string;
   message?: string;
   joinedAt: string;
+}
+
+export interface EventType {
+  value: string;
+  label: string;
+  icon: any;
+  color: string;
+  enabled: boolean;
 }

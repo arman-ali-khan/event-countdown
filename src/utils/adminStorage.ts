@@ -115,7 +115,8 @@ export const getSystemSettings = (): SystemSettings => {
     maxEventsPerUser: 50,
     maxImageSize: 10, // MB
     maintenanceMode: false,
-    featuredEvents: []
+    featuredEvents: [],
+    enabledEventTypes: ['wedding', 'birthday', 'product-launch', 'custom'] // Default enabled types
   };
   
   const stored = localStorage.getItem(ADMIN_SETTINGS_KEY);
@@ -134,6 +135,11 @@ export const updateSystemSettings = (settings: Partial<SystemSettings>): boolean
     console.error('Error updating settings:', error);
     return false;
   }
+};
+
+export const getEnabledEventTypes = (): string[] => {
+  const settings = getSystemSettings();
+  return settings.enabledEventTypes || ['wedding', 'birthday', 'product-launch', 'custom'];
 };
 
 export const logAdminAction = (action: string, description: string): void => {

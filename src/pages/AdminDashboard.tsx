@@ -23,11 +23,12 @@ import AdminOverview from '../components/admin/AdminOverview';
 import AdminUsers from '../components/admin/AdminUsers';
 import AdminEvents from '../components/admin/AdminEvents';
 import AdminLogs from '../components/admin/AdminLogs';
+import AdminSettings from '../components/admin/AdminSettings';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'events' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'events' | 'logs' | 'settings'>('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<CountdownEvent[]>([]);
@@ -212,6 +213,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'users', label: 'Users', icon: Users },
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'logs', label: 'System Logs', icon: Settings },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -286,6 +288,10 @@ const AdminDashboard: React.FC = () => {
               onPageChange={setLogsPage}
               onClearLogs={handleClearLogs}
             />
+          )}
+
+          {activeTab === 'settings' && (
+            <AdminSettings />
           )}
         </div>
       </div>

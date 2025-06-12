@@ -105,6 +105,7 @@ const EventPage: React.FC = () => {
   };
 
   const hasBackgroundImage = event.backgroundImage || event.mobileBackgroundImage;
+  const showJoinButton = event.allowJoin !== false; // Show by default if not explicitly set to false
 
   return (
     <>
@@ -144,16 +145,18 @@ const EventPage: React.FC = () => {
               />
             </div>
             
-            {/* Join Event Button */}
-            <div className="mb-12">
-              <button
-                onClick={() => setShowJoinForm(true)}
-                className="inline-flex items-center px-8 py-4 bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200 transform hover:scale-105 border border-white/20 shadow-lg"
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Join This Event
-              </button>
-            </div>
+            {/* Join Event Button - Only show if enabled */}
+            {showJoinButton && (
+              <div className="mb-12">
+                <button
+                  onClick={() => setShowJoinForm(true)}
+                  className="inline-flex items-center px-8 py-4 bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200 transform hover:scale-105 border border-white/20 shadow-lg"
+                >
+                  <Users className="w-5 h-5 mr-2" />
+                  Join This Event
+                </button>
+              </div>
+            )}
             
             {/* Event Details */}
             <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-white/80">
@@ -225,16 +228,18 @@ const EventPage: React.FC = () => {
               />
             </div>
             
-            {/* Join Event Button */}
-            <div className="mb-8">
-              <button
-                onClick={() => setShowJoinForm(true)}
-                className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200 transform hover:scale-105 border border-white/20 shadow-lg"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Join This Event
-              </button>
-            </div>
+            {/* Join Event Button - Only show if enabled */}
+            {showJoinButton && (
+              <div className="mb-8">
+                <button
+                  onClick={() => setShowJoinForm(true)}
+                  className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-md text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200 transform hover:scale-105 border border-white/20 shadow-lg"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Join This Event
+                </button>
+              </div>
+            )}
             
             {/* Event Details */}
             <div className="flex flex-col items-center justify-center space-y-3 text-white/80">
@@ -265,13 +270,15 @@ const EventPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Join Event Form Modal */}
-      <JoinEventForm
-        isOpen={showJoinForm}
-        onClose={() => setShowJoinForm(false)}
-        eventTitle={event.title}
-        eventId={event.id}
-      />
+      {/* Join Event Form Modal - Only show if join is enabled */}
+      {showJoinButton && (
+        <JoinEventForm
+          isOpen={showJoinForm}
+          onClose={() => setShowJoinForm(false)}
+          eventTitle={event.title}
+          eventId={event.id}
+        />
+      )}
     </>
   );
 };

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X, Image, Monitor, Smartphone } from 'lucide-react';
+import { Calendar, Clock, Upload, Heart, Gift, Rocket, Sparkles, X, Image, Monitor, Smartphone, Users } from 'lucide-react';
 import { EventFormData, CountdownEvent } from '../types';
 import { saveEvent, generateRandomId } from '../utils/eventStorage';
+import { getEnabledEventTypes } from '../utils/adminStorage';
 import { useAuth } from '../contexts/AuthContext';
 
 const EventForm: React.FC = () => {
@@ -13,18 +14,32 @@ const EventForm: React.FC = () => {
     description: '',
     eventDate: '',
     eventType: 'custom',
-    isPublic: true
+    isPublic: true,
+    allowJoin: true // Default to true for join button
   });
   const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(null);
   const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const eventTypes = [
+  // Get enabled event types from admin settings
+  const enabledEventTypes = getEnabledEventTypes();
+  
+  const allEventTypes = [
     { value: 'wedding', label: 'Wedding', icon: Heart, color: 'text-rose-500' },
     { value: 'birthday', label: 'Birthday', icon: Gift, color: 'text-purple-500' },
     { value: 'product-launch', label: 'Product Launch', icon: Rocket, color: 'text-green-500' },
     { value: 'custom', label: 'Custom Event', icon: Sparkles, color: 'text-blue-500' }
   ];
+
+  // Filter event types based on admin settings
+  const eventTypes = allEventTypes.filter(type => enabledEventTypes.includes(type.value));
+
+  // Set default event type to first enabled type
+  React.useEffect(() => {
+    if (eventTypes.length > 0 && !enabledEventTypes.includes(formData.eventType)) {
+      setFormData(prev => ({ ...prev, eventType: eventTypes[0].value as any }));
+    }
+  }, [eventTypes, enabledEventTypes, formData.eventType]);
 
   const handleDesktopImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -133,6 +148,7 @@ const EventForm: React.FC = () => {
         backgroundImage: desktopBackgroundUrl,
         mobileBackgroundImage: mobileBackgroundUrl,
         isPublic: formData.isPublic,
+        allowJoin: formData.allowJoin, // Add join button setting
         createdAt: new Date().toISOString(),
         userId: user?.id // Associate event with current user
       };
@@ -162,6 +178,25 @@ const EventForm: React.FC = () => {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
+
+  // Show message if no event types are enabled
+  if (eventTypes.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+          <div className="text-center">
+            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Event Creation Unavailable
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Event creation is currently disabled. Please contact the administrator.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -428,25 +463,50 @@ const EventForm: React.FC = () => {
             </div>
           </div>
 
-          {/* Public/Private Toggle */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                Make this event public
-              </h4>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Public events appear in the recent events gallery
-              </p>
+          {/* Settings Section */}
+          <div className="space-y-4">
+            {/* Public/Private Toggle */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Make this event public
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Public events appear in the recent events gallery
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isPublic}
+                  onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isPublic}
-                onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            </label>
+
+            {/* Allow Join Toggle */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                  <Users className="w-4 h-4 mr-2" />
+                  Allow people to join this event
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Show a "Join Event" button on the countdown page for visitors to register their interest
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.allowJoin}
+                  onChange={(e) => setFormData({ ...formData, allowJoin: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
           </div>
 
           {/* Submit Button */}
