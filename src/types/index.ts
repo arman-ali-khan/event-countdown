@@ -71,7 +71,10 @@ export interface CustomEventType {
   value: string;
   label: string;
   color: string;
-  icon?: any;
+  icon?: {
+    name: string;
+    component?: any;
+  };
   enabled: boolean;
 }
 

@@ -128,6 +128,15 @@ export const updateSystemSettings = (settings: Partial<SystemSettings>): boolean
   try {
     const currentSettings = getSystemSettings();
     const newSettings = { ...currentSettings, ...settings };
+    
+    // Ensure custom event types have proper icon structure
+    if (newSettings.customEventTypes) {
+      newSettings.customEventTypes = newSettings.customEventTypes.map(type => ({
+        ...type,
+        icon: typeof type.icon === 'string' ? { name: type.icon } : type.icon
+      }));
+    }
+    
     localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(newSettings));
     
     logAdminAction('UPDATE_SETTINGS', `Updated system settings: ${Object.keys(settings).join(', ')}`);

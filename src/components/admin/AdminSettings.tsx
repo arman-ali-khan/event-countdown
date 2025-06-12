@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Settings, ToggleLeft, ToggleRight, Heart, Gift, Rocket, Sparkles, Plus, X, Edit2, Trash2 } from 'lucide-react';
+import { Save, Settings, ToggleLeft, ToggleRight, Heart, Gift, Rocket, Sparkles, Plus, X, Edit2, Trash2, Calendar, Clock, Star, Trophy, Music, Camera, Briefcase, GraduationCap, Home, Coffee, Plane, Car, Book, GameController2, Palette, Zap, Target, Award, Crown, Diamond, Flame, Globe, Lightbulb, Megaphone, Shield, Smile, Sun, Moon, Umbrella, Waves, Mountain, TreePine, Flower, Leaf } from 'lucide-react';
 import { SystemSettings, EventType } from '../../types';
 import { getSystemSettings, updateSystemSettings } from '../../utils/adminStorage';
 
@@ -12,7 +12,8 @@ const AdminSettings: React.FC = () => {
   const [newEventType, setNewEventType] = useState({
     value: '',
     label: '',
-    color: 'text-blue-500'
+    color: 'text-blue-500',
+    icon: 'Sparkles'
   });
 
   const defaultEventTypes: EventType[] = [
@@ -34,6 +35,56 @@ const AdminSettings: React.FC = () => {
     { value: 'text-teal-500', label: 'Teal', class: 'bg-teal-500' },
     { value: 'text-cyan-500', label: 'Cyan', class: 'bg-cyan-500' }
   ];
+
+  // Available icons for custom event types
+  const iconOptions = [
+    { name: 'Sparkles', component: Sparkles, category: 'General' },
+    { name: 'Star', component: Star, category: 'General' },
+    { name: 'Trophy', component: Trophy, category: 'Achievement' },
+    { name: 'Award', component: Award, category: 'Achievement' },
+    { name: 'Crown', component: Crown, category: 'Achievement' },
+    { name: 'Target', component: Target, category: 'Business' },
+    { name: 'Briefcase', component: Briefcase, category: 'Business' },
+    { name: 'Calendar', component: Calendar, category: 'Time' },
+    { name: 'Clock', component: Clock, category: 'Time' },
+    { name: 'Music', component: Music, category: 'Entertainment' },
+    { name: 'Camera', component: Camera, category: 'Entertainment' },
+    { name: 'GameController2', component: GameController2, category: 'Entertainment' },
+    { name: 'GraduationCap', component: GraduationCap, category: 'Education' },
+    { name: 'Book', component: Book, category: 'Education' },
+    { name: 'Home', component: Home, category: 'Lifestyle' },
+    { name: 'Coffee', component: Coffee, category: 'Lifestyle' },
+    { name: 'Plane', component: Plane, category: 'Travel' },
+    { name: 'Car', component: Car, category: 'Travel' },
+    { name: 'Mountain', component: Mountain, category: 'Nature' },
+    { name: 'TreePine', component: TreePine, category: 'Nature' },
+    { name: 'Flower', component: Flower, category: 'Nature' },
+    { name: 'Leaf', component: Leaf, category: 'Nature' },
+    { name: 'Sun', component: Sun, category: 'Weather' },
+    { name: 'Moon', component: Moon, category: 'Weather' },
+    { name: 'Umbrella', component: Umbrella, category: 'Weather' },
+    { name: 'Waves', component: Waves, category: 'Weather' },
+    { name: 'Palette', component: Palette, category: 'Creative' },
+    { name: 'Zap', component: Zap, category: 'Energy' },
+    { name: 'Diamond', component: Diamond, category: 'Luxury' },
+    { name: 'Flame', component: Flame, category: 'Energy' },
+    { name: 'Globe', component: Globe, category: 'Global' },
+    { name: 'Lightbulb', component: Lightbulb, category: 'Ideas' },
+    { name: 'Megaphone', component: Megaphone, category: 'Communication' },
+    { name: 'Shield', component: Shield, category: 'Security' },
+    { name: 'Smile', component: Smile, category: 'Emotion' }
+  ];
+
+  // Group icons by category
+  const iconCategories = iconOptions.reduce((acc, icon) => {
+    if (!acc[icon.category]) {
+      acc[icon.category] = [];
+    }
+    acc[icon.category].push(icon);
+    return acc;
+  }, {} as Record<string, typeof iconOptions>);
+
+  const [selectedIconCategory, setSelectedIconCategory] = useState('General');
 
   useEffect(() => {
     loadSettings();
@@ -68,6 +119,11 @@ const AdminSettings: React.FC = () => {
     }
   };
 
+  const getIconComponent = (iconName: string) => {
+    const iconOption = iconOptions.find(option => option.name === iconName);
+    return iconOption ? iconOption.component : Sparkles;
+  };
+
   const handleCreateEventType = () => {
     if (!settings || !newEventType.value || !newEventType.label) return;
 
@@ -80,9 +136,10 @@ const AdminSettings: React.FC = () => {
       return;
     }
 
+    const IconComponent = getIconComponent(newEventType.icon);
     const newCustomType = {
       ...newEventType,
-      icon: Sparkles, // Default icon for custom types
+      icon: IconComponent,
       enabled: true
     };
 
@@ -96,7 +153,7 @@ const AdminSettings: React.FC = () => {
     });
 
     // Reset form
-    setNewEventType({ value: '', label: '', color: 'text-blue-500' });
+    setNewEventType({ value: '', label: '', color: 'text-blue-500', icon: 'Sparkles' });
     setShowCreateEventType(false);
     setSaveMessage('New event type created! Don\'t forget to save settings.');
     setTimeout(() => setSaveMessage(null), 3000);
@@ -146,6 +203,7 @@ const AdminSettings: React.FC = () => {
       })),
       ...customTypes.map(type => ({
         ...type,
+        icon: getIconComponent(type.icon?.name || 'Sparkles'),
         enabled: enabledTypes.includes(type.value)
       }))
     ];
@@ -332,7 +390,7 @@ const AdminSettings: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowCreateEventType(false);
-                    setNewEventType({ value: '', label: '', color: 'text-blue-500' });
+                    setNewEventType({ value: '', label: '', color: 'text-blue-500', icon: 'Sparkles' });
                   }}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
@@ -369,6 +427,60 @@ const AdminSettings: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Icon
+                  </label>
+                  
+                  {/* Icon Category Selector */}
+                  <div className="mb-3">
+                    <select
+                      value={selectedIconCategory}
+                      onChange={(e) => setSelectedIconCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    >
+                      {Object.keys(iconCategories).map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Icon Grid */}
+                  <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-2">
+                    {iconCategories[selectedIconCategory]?.map((iconOption) => {
+                      const IconComponent = iconOption.component;
+                      return (
+                        <button
+                          key={iconOption.name}
+                          type="button"
+                          onClick={() => setNewEventType({ ...newEventType, icon: iconOption.name })}
+                          className={`p-2 rounded-lg transition-colors duration-200 ${
+                            newEventType.icon === iconOption.name
+                              ? 'bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-500'
+                              : 'bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 border-2 border-transparent'
+                          }`}
+                          title={iconOption.name}
+                        >
+                          <IconComponent className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Selected Icon Preview */}
+                  <div className="mt-2 flex items-center space-x-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Selected:</span>
+                    <div className="flex items-center space-x-2 px-2 py-1 bg-gray-100 dark:bg-gray-600 rounded">
+                      {React.createElement(getIconComponent(newEventType.icon), { 
+                        className: `w-4 h-4 ${newEventType.color}` 
+                      })}
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{newEventType.icon}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Color Theme
                   </label>
                   <div className="grid grid-cols-5 gap-2">
@@ -396,7 +508,7 @@ const AdminSettings: React.FC = () => {
                   <button
                     onClick={() => {
                       setShowCreateEventType(false);
-                      setNewEventType({ value: '', label: '', color: 'text-blue-500' });
+                      setNewEventType({ value: '', label: '', color: 'text-blue-500', icon: 'Sparkles' });
                     }}
                     className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200 text-sm"
                   >
