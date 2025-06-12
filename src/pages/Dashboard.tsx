@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Clock, Edit, Trash2, Eye, Share2, Users, BarChart3, Copy, ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
+import { Plus, Calendar, Clock, Edit, Trash2, Eye, Share2, Users, BarChart3, Copy, ChevronDown, ChevronUp, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { CountdownEvent } from '../types';
 import { getEvents, deleteEvent } from '../utils/eventStorage';
@@ -8,11 +8,14 @@ import { calculateCountdown } from '../utils/countdown';
 import { copyToClipboard } from '../utils/sharing';
 import DeleteEventModal from '../components/DeleteEventModal';
 
+const EVENTS_PER_PAGE = 12;
+
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [events, setEvents] = useState<CountdownEvent[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'expired'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [deleteModal, setDeleteModal] = useState<{
@@ -35,6 +38,11 @@ const Dashboard: React.FC = () => {
     const userEvents = allEvents.filter(event => event.userId === user.id);
     setEvents(userEvents);
   }, [user, navigate]);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
 
   const toggleCardExpansion = (cardId: string) => {
     const newExpanded = new Set(expandedCards);
@@ -110,6 +118,22 @@ const Dashboard: React.FC = () => {
     });
   };
 
+  const getPaginatedEvents = () => {
+    const filteredEvents = getFilteredEvents();
+    const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
+    const endIndex = startIndex + EVENTS_PER_PAGE;
+    return filteredEvents.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    const filteredEvents = getFilteredEvents();
+    return Math.ceil(filteredEvents.length / EVENTS_PER_PAGE);
+  };
+
+  const shouldShowPagination = () => {
+    return getFilteredEvents().length > EVENTS_PER_PAGE;
+  };
+
   const getEventStatus = (eventDate: string) => {
     const time = calculateCountdown(eventDate);
     if (time.days === 0 && time.hours === 0 && time.minutes === 0 && time.seconds === 0) {
@@ -124,7 +148,85 @@ const Dashboard: React.FC = () => {
     return { status: 'active', text: `${time.minutes}m ${time.seconds}s left`, color: 'text-orange-500' };
   };
 
+  const Pagination: React.FC = () => {
+    const totalPages = getTotalPages();
+    
+    if (!shouldShowPagination()) return null;
+
+    const startItem = (currentPage - 1) * EVENTS_PER_PAGE + 1;
+    const endItem = Math.min(currentPage * EVENTS_PER_PAGE, getFilteredEvents().length);
+    const totalItems = getFilteredEvents().length;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Showing {startItem} to {endItem} of {totalItems} events
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              // Show first page, last page, current page, and pages around current page
+              const showPage = page === 1 || 
+                              page === totalPages || 
+                              Math.abs(page - currentPage) <= 1;
+              
+              if (!showPage && page === 2 && currentPage > 4) {
+                return (
+                  <span key={page} className="px-2 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+              
+              if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
+                return (
+                  <span key={page} className="px-2 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+              
+              if (!showPage) return null;
+              
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 text-sm rounded-md transition-colors duration-200 ${
+                    page === currentPage
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const filteredEvents = getFilteredEvents();
+  const paginatedEvents = getPaginatedEvents();
   const activeEvents = events.filter(event => new Date(event.eventDate) > new Date()).length;
   const expiredEvents = events.length - activeEvents;
   const publicEvents = events.filter(event => event.isPublic).length;
@@ -224,18 +326,18 @@ const Dashboard: React.FC = () => {
                 onChange={(e) => setFilter(e.target.value as any)}
                 className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
               >
-                <option value="all">All Events</option>
-                <option value="active">Active</option>
-                <option value="expired">Expired</option>
+                <option value="all">All Events ({events.length})</option>
+                <option value="active">Active ({activeEvents})</option>
+                <option value="expired">Expired ({expiredEvents})</option>
               </select>
             </div>
 
             {/* Desktop Tabs */}
             <div className="hidden sm:flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
               {[
-                { key: 'all', label: 'All Events' },
-                { key: 'active', label: 'Active' },
-                { key: 'expired', label: 'Expired' }
+                { key: 'all', label: 'All Events', count: events.length },
+                { key: 'active', label: 'Active', count: activeEvents },
+                { key: 'expired', label: 'Expired', count: expiredEvents }
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -246,7 +348,7 @@ const Dashboard: React.FC = () => {
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  {tab.label}
+                  {tab.label} ({tab.count})
                 </button>
               ))}
             </div>
@@ -279,7 +381,7 @@ const Dashboard: React.FC = () => {
             <>
               {/* Desktop Grid View */}
               <div className="hidden lg:grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-                {filteredEvents.map((event) => {
+                {paginatedEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
                   return (
                     <div
@@ -384,7 +486,7 @@ const Dashboard: React.FC = () => {
 
               {/* Mobile Card View */}
               <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-2 space-y-4">
-                {filteredEvents.map((event) => {
+                {paginatedEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
                   const isExpanded = expandedCards.has(event.id);
                   
@@ -498,6 +600,9 @@ const Dashboard: React.FC = () => {
                   );
                 })}
               </div>
+
+              {/* Pagination */}
+              <Pagination />
             </>
           )}
         </div>
