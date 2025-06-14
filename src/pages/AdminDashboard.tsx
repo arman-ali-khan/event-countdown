@@ -4,7 +4,8 @@ import {
   Users, 
   Calendar, 
   BarChart3, 
-  Settings
+  Settings,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -17,6 +18,15 @@ import {
   getSystemLogs,
   clearSystemLogs
 } from '../utils/adminStorage';
+import { 
+  getContactMessages,
+  markMessageAsRead,
+  archiveMessage,
+  deleteContactMessage,
+  simulateEmailReply,
+  getUnreadMessageCount,
+  type ContactMessage
+} from '../utils/contactStorage';
 import { User, CountdownEvent, AdminStats } from '../types';
 import ConfirmationModal from '../components/ConfirmationModal';
 import AdminOverview from '../components/admin/AdminOverview';
@@ -24,20 +34,24 @@ import AdminUsers from '../components/admin/AdminUsers';
 import AdminEvents from '../components/admin/AdminEvents';
 import AdminLogs from '../components/admin/AdminLogs';
 import AdminSettings from '../components/admin/AdminSettings';
+import AdminContactMessages from '../components/admin/AdminContactMessages';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'events' | 'logs' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'events' | 'messages' | 'logs' | 'settings'>('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<CountdownEvent[]>([]);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   
   // Pagination states
   const [usersPage, setUsersPage] = useState(1);
   const [eventsPage, setEventsPage] = useState(1);
+  const [messagesPage, setMessagesPage] = useState(1);
   const [logsPage, setLogsPage] = useState(1);
   
   const [confirmModal, setConfirmModal] = useState<{
@@ -74,11 +88,15 @@ const AdminDashboard: React.FC = () => {
       const allUsers = getAllUsers();
       const allEvents = getAllEvents();
       const systemLogs = getSystemLogs();
+      const messages = getContactMessages();
+      const unreadCount = getUnreadMessageCount();
 
       setStats(adminStats);
       setUsers(allUsers);
       setEvents(allEvents);
       setLogs(systemLogs);
+      setContactMessages(messages);
+      setUnreadMessageCount(unreadCount);
     } catch (error) {
       console.error('Error loading admin data:', error);
     } finally {
@@ -197,6 +215,73 @@ const AdminDashboard: React.FC = () => {
     });
   };
 
+  // Contact message handlers
+  const handleMarkAsRead = (messageId: string) => {
+    markMessageAsRead(messageId);
+    loadData();
+  };
+
+  const handleArchiveMessage = (messageId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Archive Message',
+      message: 'Are you sure you want to archive this message? It will be moved to the archived messages section.',
+      confirmText: 'Archive Message',
+      type: 'info',
+      isProcessing: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+        
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const success = archiveMessage(messageId);
+          
+          if (success) {
+            loadData();
+            setConfirmModal(prev => ({ ...prev, isOpen: false, isProcessing: false }));
+          }
+        } catch (error) {
+          console.error('Error archiving message:', error);
+          setConfirmModal(prev => ({ ...prev, isProcessing: false }));
+        }
+      }
+    });
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Message',
+      message: 'Are you sure you want to permanently delete this message? This action cannot be undone.',
+      confirmText: 'Delete Message',
+      type: 'danger',
+      isProcessing: false,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isProcessing: true }));
+        
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const success = deleteContactMessage(messageId);
+          
+          if (success) {
+            loadData();
+            setConfirmModal(prev => ({ ...prev, isOpen: false, isProcessing: false }));
+          }
+        } catch (error) {
+          console.error('Error deleting message:', error);
+          setConfirmModal(prev => ({ ...prev, isProcessing: false }));
+        }
+      }
+    });
+  };
+
+  const handleReplyToMessage = (message: ContactMessage, replyContent: string) => {
+    const success = simulateEmailReply(message, replyContent);
+    if (success) {
+      loadData(); // Refresh data to update read status
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -212,6 +297,12 @@ const AdminDashboard: React.FC = () => {
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'events', label: 'Events', icon: Calendar },
+    { 
+      id: 'messages', 
+      label: 'Messages', 
+      icon: Mail,
+      badge: unreadMessageCount > 0 ? unreadMessageCount : undefined
+    },
     { id: 'logs', label: 'System Logs', icon: Settings },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -226,7 +317,7 @@ const AdminDashboard: React.FC = () => {
               Admin Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Manage users, events, and system settings
+              Manage users, events, messages, and system settings
             </p>
           </div>
 
@@ -240,7 +331,7 @@ const AdminDashboard: React.FC = () => {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                      className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 relative ${
                         activeTab === tab.id
                           ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
@@ -248,6 +339,11 @@ const AdminDashboard: React.FC = () => {
                     >
                       <IconComponent className="w-5 h-5 mr-2" />
                       {tab.label}
+                      {tab.badge && (
+                        <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                          {tab.badge}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -278,6 +374,18 @@ const AdminDashboard: React.FC = () => {
               currentPage={eventsPage}
               onPageChange={setEventsPage}
               onDeleteEvent={handleDeleteEvent}
+            />
+          )}
+
+          {activeTab === 'messages' && (
+            <AdminContactMessages
+              messages={contactMessages}
+              currentPage={messagesPage}
+              onPageChange={setMessagesPage}
+              onMarkAsRead={handleMarkAsRead}
+              onArchiveMessage={handleArchiveMessage}
+              onDeleteMessage={handleDeleteMessage}
+              onReplyToMessage={handleReplyToMessage}
             />
           )}
 

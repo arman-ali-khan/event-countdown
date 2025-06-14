@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, MessageSquare, User, AlertCircle } from 'lucide-react';
+import { saveContactMessage } from '../utils/contactStorage';
 
 const ContactUs: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -20,8 +21,8 @@ const ContactUs: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // In a real app, you would send this to your backend
-      console.log('Contact form submitted:', formData);
+      // Save the contact message
+      saveContactMessage(formData);
       
       setIsSubmitted(true);
       setFormData({
