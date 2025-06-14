@@ -14,7 +14,8 @@ import {
   X,
   Calendar,
   User,
-  MessageSquare
+  MessageSquare,
+  Clock
 } from 'lucide-react';
 
 interface ContactMessage {
@@ -152,7 +153,7 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
 
     return (
-      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
         <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
           Showing {startItem} to {endItem} of {totalItems} messages
         </div>
@@ -216,7 +217,7 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
     <>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -255,7 +256,7 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
           </div>
         </div>
         
-        {/* Messages Table */}
+        {/* Messages Table/Cards */}
         {filteredMessages.length === 0 ? (
           <div className="p-8 text-center">
             <Mail className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -268,7 +269,8 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -393,7 +395,7 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
                           </button>
                           <button
                             onClick={() => onArchiveMessage(message.id)}
-                            className="p-2 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                            className="p-2 text-black dark:text-white rounded-lg transition-colors duration-200"
                             title="Archive message"
                           >
                             <Archive className="w-4 h-4" />
@@ -411,6 +413,118 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden">
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedMessages.map((message) => (
+                  <div 
+                    key={message.id} 
+                    className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                      !message.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3 flex-1 min-w-0">
+                        <div className={`p-2 rounded-lg ${
+                          !message.isRead 
+                            ? 'bg-blue-100 dark:bg-blue-900/20' 
+                            : 'bg-gray-100 dark:bg-gray-700'
+                        }`}>
+                          <User className={`w-5 h-5 ${
+                            !message.isRead 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className={`text-sm font-medium truncate ${
+                              !message.isRead 
+                                ? 'text-gray-900 dark:text-white font-semibold' 
+                                : 'text-gray-900 dark:text-white'
+                            }`}>
+                              {message.name}
+                            </h4>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getCategoryColor(message.category)}`}>
+                              {message.category.replace('-', ' ')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate mb-1">
+                            {message.email}
+                          </p>
+                          <div className={`text-sm mb-2 ${
+                            !message.isRead 
+                              ? 'text-gray-900 dark:text-white font-medium' 
+                              : 'text-gray-900 dark:text-white'
+                          }`}>
+                            <div className="font-medium truncate">{message.subject}</div>
+                            <div className="text-gray-600 dark:text-gray-400 text-xs mt-1 line-clamp-2">
+                              {message.message}
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{new Date(message.receivedAt).toLocaleDateString()}</span>
+                              <span>{new Date(message.receivedAt).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}</span>
+                            </div>
+                            <button
+                              onClick={() => onMarkAsRead(message.id)}
+                              className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full transition-colors duration-200 ${
+                                message.isRead
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
+                              }`}
+                            >
+                              {message.isRead ? (
+                                <>
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Read
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="w-3 h-3 mr-1" />
+                                  Unread
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              onClick={() => handleReply(message)}
+                              className="flex items-center justify-center px-3 py-2 text-blue-600 bg-blue-100 dark:bg-blue-900/20 hover:bg-blue-200 dark:hover:bg-blue-900/30 rounded-lg text-xs font-medium transition-colors duration-200"
+                            >
+                              <Reply className="w-3 h-3 mr-1" />
+                              Reply
+                            </button>
+                            <button
+                              onClick={() => onArchiveMessage(message.id)}
+                              className="flex items-center justify-center px-3 py-2 text-gray-600 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-xs font-medium transition-colors duration-200"
+                            >
+                              <Archive className="w-3 h-3 mr-1" />
+                              Archive
+                            </button>
+                            <button
+                              onClick={() => onDeleteMessage(message.id)}
+                              className="flex items-center justify-center px-3 py-2 text-red-600 bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/30 rounded-lg text-xs font-medium transition-colors duration-200"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             
             <Pagination
