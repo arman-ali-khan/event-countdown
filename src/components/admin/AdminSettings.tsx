@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Settings, ToggleLeft, ToggleRight, Heart, Gift, Rocket, Sparkles, Plus, X, Edit2, Trash2, Calendar, Clock, Star, Trophy, Music, Camera, Briefcase, GraduationCap, Home, Coffee, Plane, Car, Book, GameController2, Palette, Zap, Target, Award, Crown, Diamond, Flame, Globe, Lightbulb, Megaphone, Shield, Smile, Sun, Moon, Umbrella, Waves, Mountain, TreePine, Flower, Leaf } from 'lucide-react';
+import { Save, Settings, ToggleLeft, ToggleRight, Heart, Gift, Rocket, Sparkles, Plus, X, Edit2, Trash2, Calendar, Clock, Star, Trophy, Music, Camera, Briefcase, GraduationCap, Home, Coffee, Plane, Car, Book, Gamepad2, Palette, Zap, Target, Award, Crown, Diamond, Flame, Globe, Lightbulb, Megaphone, Shield, Smile, Sun, Moon, Umbrella, Waves, Mountain, TreePine, Flower, Leaf } from 'lucide-react';
 import { SystemSettings, EventType } from '../../types';
 import { getSystemSettings, updateSystemSettings } from '../../utils/adminStorage';
 
@@ -49,7 +49,7 @@ const AdminSettings: React.FC = () => {
     { name: 'Clock', component: Clock, category: 'Time' },
     { name: 'Music', component: Music, category: 'Entertainment' },
     { name: 'Camera', component: Camera, category: 'Entertainment' },
-    { name: 'GameController2', component: GameController2, category: 'Entertainment' },
+    { name: 'Gamepad2', component: Gamepad2, category: 'Entertainment' },
     { name: 'GraduationCap', component: GraduationCap, category: 'Education' },
     { name: 'Book', component: Book, category: 'Education' },
     { name: 'Home', component: Home, category: 'Lifestyle' },
@@ -136,10 +136,9 @@ const AdminSettings: React.FC = () => {
       return;
     }
 
-    const IconComponent = getIconComponent(newEventType.icon);
     const newCustomType = {
       ...newEventType,
-      icon: IconComponent,
+      icon: { name: newEventType.icon }, // Store icon as object with name
       enabled: true
     };
 
@@ -203,7 +202,7 @@ const AdminSettings: React.FC = () => {
       })),
       ...customTypes.map(type => ({
         ...type,
-        icon: getIconComponent(type.icon?.name || 'Sparkles'),
+        icon: getIconComponent(type.icon?.name || 'Sparkles'), // Get the actual icon component
         enabled: enabledTypes.includes(type.value)
       }))
     ];
