@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEOHead from '../components/SEOHead';
 import { 
   Users, 
   Calendar, 
@@ -309,6 +310,11 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <>
+        <SEOHead
+          title="Admin Dashboard - CountdownBuilder"
+          description="Admin Dashboard"
+          noIndex={true}
+        />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           {/* Header */}

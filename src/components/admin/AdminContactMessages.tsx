@@ -395,7 +395,7 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
                           </button>
                           <button
                             onClick={() => onArchiveMessage(message.id)}
-                            className="p-2 text-gray-600 dark:text-gray-200 rounded-lg transition-colors duration-200"
+                            className="p-2 text-black dark:text-white rounded-lg transition-colors duration-200"
                             title="Archive message"
                           >
                             <Archive className="w-4 h-4" />
@@ -506,7 +506,7 @@ const AdminContactMessages: React.FC<AdminContactMessagesProps> = ({
                             </button>
                             <button
                               onClick={() => onArchiveMessage(message.id)}
-                              className="flex items-center justify-center px-3 py-2 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-xs font-medium transition-colors duration-200"
+                              className="flex items-center justify-center px-3 py-2 text-gray-600 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-xs font-medium transition-colors duration-200"
                             >
                               <Archive className="w-3 h-3 mr-1" />
                               Archive

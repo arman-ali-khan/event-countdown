@@ -3,7 +3,9 @@ import { useParams, Navigate } from 'react-router-dom';
 import { Calendar, Clock, Users } from 'lucide-react';
 import CountdownTimer from '../components/CountdownTimer';
 import JoinEventForm from '../components/JoinEventForm';
+import SEOHead from '../components/SEOHead';
 import { getEventById } from '../utils/eventStorage';
+import { generateEventOGImage } from '../utils/seo';
 import { CountdownEvent } from '../types';
 
 const EventPage: React.FC = () => {
@@ -19,20 +21,6 @@ const EventPage: React.FC = () => {
     }
     setLoading(false);
   }, [id]);
-
-  useEffect(() => {
-    if (event) {
-      // Update document title and meta tags
-      document.title = `${event.title} - Countdown`;
-      
-      const metaDescription = document.querySelector('meta[name="description"]');
-      if (metaDescription) {
-        metaDescription.setAttribute('content', 
-          event.description || `Countdown to ${event.title} on ${new Date(event.eventDate).toLocaleDateString()}`
-        );
-      }
-    }
-  }, [event]);
 
   if (loading) {
     return (
@@ -50,7 +38,32 @@ const EventPage: React.FC = () => {
   }
 
   const eventDate = new Date(event.eventDate);
+  const formattedDate = eventDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  const formattedTime = eventDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  // SEO data
+  const seoTitle = `${event.title} - Countdown Timer`;
+  const seoDescription = event.description 
+    ? `${event.description} Join the countdown to ${event.title} on ${formattedDate} at ${formattedTime}.`
+    : `Countdown to ${event.title} on ${formattedDate} at ${formattedTime}. Don't miss this special event!`;
   
+  const keywords = [
+    event.title.toLowerCase(),
+    `${event.eventType} countdown`,
+    'event countdown',
+    'countdown timer',
+    formattedDate.toLowerCase()
+  ].join(', ');
+
   // Determine which background image to use based on screen size
   const getBackgroundStyle = () => {
     // Check if we have both desktop and mobile images
@@ -109,6 +122,14 @@ const EventPage: React.FC = () => {
 
   return (
     <>
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        keywords={keywords}
+        ogType="article"
+        ogImage={generateEventOGImage(event.title, formattedDate)}
+      />
+
       {/* Desktop Background */}
       <div 
         className={`min-h-screen relative hidden md:block ${!hasBackgroundImage ? getDefaultBackground() : ''}`}
@@ -163,23 +184,14 @@ const EventPage: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5" />
                 <span className="text-lg font-medium">
-                  {eventDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {formattedDate}
                 </span>
               </div>
               
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5" />
                 <span className="text-lg font-medium">
-                  {eventDate.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                  })}
+                  {formattedTime}
                 </span>
               </div>
             </div>
@@ -246,23 +258,14 @@ const EventPage: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
                 <span className="text-base font-medium">
-                  {eventDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {formattedDate}
                 </span>
               </div>
               
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4" />
                 <span className="text-base font-medium">
-                  {eventDate.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                  })}
+                  {formattedTime}
                 </span>
               </div>
             </div>

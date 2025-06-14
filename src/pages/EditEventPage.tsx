@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import EditEventForm from '../components/EditEventForm';
+import SEOHead from '../components/SEOHead';
 
 const EditEventPage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -21,7 +22,18 @@ const EditEventPage: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return <EditEventForm />;
+  return (
+    <>
+      <SEOHead
+        title="Edit Event Countdown - CountdownBuilder"
+        description="Edit your countdown event details, update images, change privacy settings, and modify your countdown timer configuration."
+        keywords="edit countdown, modify event countdown, update countdown timer"
+        noIndex={true} // Don't index user-specific pages
+      />
+      
+      <EditEventForm />
+    </>
+  );
 };
 
 export default EditEventPage;

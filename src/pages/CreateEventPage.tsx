@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import EventForm from '../components/EventForm';
+import SEOHead from '../components/SEOHead';
 
 const CreateEventPage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -22,11 +23,20 @@ const CreateEventPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <EventForm />
+    <>
+      <SEOHead
+        title="Create Event Countdown - CountdownBuilder"
+        description="Create a beautiful countdown timer for your special event. Choose from wedding, birthday, product launch themes or create a custom countdown with your own design."
+        keywords="create countdown, event countdown creator, countdown maker, wedding countdown, birthday countdown, product launch timer"
+        noIndex={true} // Don't index user-specific pages
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <EventForm />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

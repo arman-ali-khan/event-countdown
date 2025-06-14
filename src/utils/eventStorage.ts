@@ -1,18 +1,6 @@
 import { CountdownEvent } from '../types';
 
 const EVENTS_KEY = 'countdown-events';
-const JOIN_REQUESTS_KEY = 'event-join-requests';
-
-export interface EventJoinRequest {
-  id: string;
-  eventId: string;
-  eventTitle: string;
-  name: string;
-  email: string;
-  phone?: string;
-  message?: string;
-  joinedAt: string;
-}
 
 export const saveEvent = (event: CountdownEvent): void => {
   const events = getEvents();
@@ -49,65 +37,6 @@ export const getPublicEvents = (): CountdownEvent[] => {
 
 export const getUserEvents = (userId: string): CountdownEvent[] => {
   return getEvents().filter(event => event.userId === userId);
-};
-
-export const getAllJoinRequests = (): EventJoinRequest[] => {
-  const stored = localStorage.getItem(JOIN_REQUESTS_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-export const getJoinRequestsForUser = (userId: string): EventJoinRequest[] => {
-  const userEvents = getUserEvents(userId);
-  const userEventIds = userEvents.map(event => event.id);
-  const allJoinRequests = getAllJoinRequests();
-  
-  return allJoinRequests.filter(request => userEventIds.includes(request.eventId));
-};
-
-export const getJoinRequestsForEvent = (eventId: string): EventJoinRequest[] => {
-  const allJoinRequests = getAllJoinRequests();
-  return allJoinRequests.filter(request => request.eventId === eventId);
-};
-
-export const deleteJoinRequest = (requestId: string): boolean => {
-  try {
-    const requests = getAllJoinRequests();
-    const filteredRequests = requests.filter(request => request.id !== requestId);
-    localStorage.setItem(JOIN_REQUESTS_KEY, JSON.stringify(filteredRequests));
-    return true;
-  } catch (error) {
-    console.error('Error deleting join request:', error);
-    return false;
-  }
-};
-
-export const exportJoinRequestsAsCSV = (requests: EventJoinRequest[]): string => {
-  const headers = ['Event Title', 'Name', 'Email', 'Phone', 'Message', 'Joined Date'];
-  const csvContent = [
-    headers.join(','),
-    ...requests.map(request => [
-      `"${request.eventTitle}"`,
-      `"${request.name}"`,
-      `"${request.email}"`,
-      `"${request.phone || ''}"`,
-      `"${(request.message || '').replace(/"/g, '""')}"`,
-      `"${new Date(request.joinedAt).toLocaleString()}"`
-    ].join(','))
-  ].join('\n');
-  
-  return csvContent;
-};
-
-export const downloadCSV = (csvContent: string, filename: string): void => {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };
 
 export const generateRandomId = (): string => {
