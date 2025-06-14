@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal, Activity, Clock, FileText } from 'lucide-react';
 
 interface AdminLogsProps {
   logs: any[];
@@ -42,7 +42,7 @@ const AdminLogs: React.FC<AdminLogsProps> = ({
     const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
 
     return (
-      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
         <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
           Showing {startItem} to {endItem} of {totalItems} results
         </div>
@@ -104,7 +104,7 @@ const AdminLogs: React.FC<AdminLogsProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           System Logs ({logs.length})
         </h3>
@@ -120,11 +120,13 @@ const AdminLogs: React.FC<AdminLogsProps> = ({
       
       {logs.length === 0 ? (
         <div className="p-8 text-center">
+          <Activity className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <p className="text-gray-500 dark:text-gray-400">No system logs available</p>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
@@ -157,6 +159,35 @@ const AdminLogs: React.FC<AdminLogsProps> = ({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {paginatedLogs.map((log) => (
+                <div key={log.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <Activity className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+                          {log.action}
+                        </span>
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <Clock className="w-3 h-3 mr-1" />
+                          <span>{new Date(log.timestamp).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {log.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
           
           <Pagination

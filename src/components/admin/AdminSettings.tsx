@@ -243,7 +243,7 @@ const AdminSettings: React.FC = () => {
           ) : (
             <>
               <Save className="w-4 h-4" />
-              <span>Save Settings</span>
+              <span className="hidden sm:block">Save Settings</span>
             </>
           )}
         </button>
@@ -373,7 +373,7 @@ const AdminSettings: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>Create Type</span>
+              <span className="hidden sm:block">Create Type</span>
             </button>
           </div>
           
