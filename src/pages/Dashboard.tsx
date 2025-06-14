@@ -10,6 +10,7 @@ import { calculateCountdown } from '../utils/countdown';
 import { copyToClipboard } from '../utils/sharing';
 import DeleteEventModal from '../components/DeleteEventModal';
 import EventJoinRequests from '../components/EventJoinRequests';
+import EventJoinMessageModal from '../components/EventJoinMessageModal';
 
 const EVENTS_PER_PAGE = 12;
 
@@ -24,6 +25,8 @@ const Dashboard: React.FC = () => {
   const [showJoinRequests, setShowJoinRequests] = useState<Set<string>>(new Set());
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [unreadJoinCount, setUnreadJoinCount] = useState(0);
+  const [selectedJoinRequest, setSelectedJoinRequest] = useState<any>(null);
+  const [showJoinMessageModal, setShowJoinMessageModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     event: CountdownEvent | null;
@@ -80,6 +83,19 @@ const Dashboard: React.FC = () => {
       newShowJoinRequests.add(eventId);
     }
     setShowJoinRequests(newShowJoinRequests);
+  };
+
+  const handleViewJoinMessage = (joinRequest: any) => {
+    setSelectedJoinRequest(joinRequest);
+    setShowJoinMessageModal(true);
+  };
+
+  const handleReplyToJoinMessage = (email: string, subject: string) => {
+    // Open email client with pre-filled information
+    const body = `Hi there,\n\nThank you for your interest in our event!\n\n\n\nBest regards,\nEvent Organizer`;
+    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl, '_blank');
+    setShowJoinMessageModal(false);
   };
 
   const handleDeleteEvent = (event: CountdownEvent) => {
@@ -431,7 +447,7 @@ const Dashboard: React.FC = () => {
           ) : (
             <>
               {/* Desktop Grid View */}
-              <div className="hidden lg:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="hidden lg:grid grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
                   const eventJoinRequests = getEventJoinRequests(event.id);
@@ -750,6 +766,14 @@ const Dashboard: React.FC = () => {
         onConfirm={confirmDeleteEvent}
         onCancel={cancelDeleteEvent}
         isDeleting={deleteModal.isDeleting}
+      />
+
+      {/* Event Join Message Modal */}
+      <EventJoinMessageModal
+        isOpen={showJoinMessageModal}
+        onClose={() => setShowJoinMessageModal(false)}
+        joinRequest={selectedJoinRequest}
+        onReply={handleReplyToJoinMessage}
       />
     </>
   );
