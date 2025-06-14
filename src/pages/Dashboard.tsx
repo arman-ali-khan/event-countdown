@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import SEOHead from '../components/SEOHead';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Clock, Edit, Trash2, Eye, Share2, Users, BarChart3, Copy, ChevronDown, ChevronUp, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Calendar, Clock, Edit, Trash2, Eye, Share2, Users, BarChart3, Copy, ChevronDown, ChevronUp, MoreVertical, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { CountdownEvent } from '../types';
 import { getEvents, deleteEvent } from '../utils/eventStorage';
+import { getJoinRequestsForUser, getUnreadJoinRequestCount } from '../utils/eventJoinStorage';
 import { calculateCountdown } from '../utils/countdown';
 import { copyToClipboard } from '../utils/sharing';
 import DeleteEventModal from '../components/DeleteEventModal';
+import EventJoinRequests from '../components/EventJoinRequests';
 
 const EVENTS_PER_PAGE = 12;
 
@@ -19,6 +21,9 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [showJoinRequests, setShowJoinRequests] = useState<Set<string>>(new Set());
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
+  const [unreadJoinCount, setUnreadJoinCount] = useState(0);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     event: CountdownEvent | null;
@@ -35,10 +40,22 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    loadUserData();
+  }, [user, navigate]);
+
+  const loadUserData = () => {
+    if (!user) return;
+
     const allEvents = getEvents();
     const userEvents = allEvents.filter(event => event.userId === user.id);
     setEvents(userEvents);
-  }, [user, navigate]);
+
+    const userJoinRequests = getJoinRequestsForUser(user.id);
+    setJoinRequests(userJoinRequests);
+
+    const unreadCount = getUnreadJoinRequestCount(user.id);
+    setUnreadJoinCount(unreadCount);
+  };
 
   // Reset to page 1 when filter changes
   useEffect(() => {
@@ -53,6 +70,16 @@ const Dashboard: React.FC = () => {
       newExpanded.add(cardId);
     }
     setExpandedCards(newExpanded);
+  };
+
+  const toggleJoinRequests = (eventId: string) => {
+    const newShowJoinRequests = new Set(showJoinRequests);
+    if (newShowJoinRequests.has(eventId)) {
+      newShowJoinRequests.delete(eventId);
+    } else {
+      newShowJoinRequests.add(eventId);
+    }
+    setShowJoinRequests(newShowJoinRequests);
   };
 
   const handleDeleteEvent = (event: CountdownEvent) => {
@@ -79,6 +106,9 @@ const Dashboard: React.FC = () => {
         event: null,
         isDeleting: false
       });
+
+      // Reload data to update join requests
+      loadUserData();
     } catch (error) {
       console.error('Error deleting event:', error);
       setDeleteModal(prev => ({ ...prev, isDeleting: false }));
@@ -149,6 +179,14 @@ const Dashboard: React.FC = () => {
     return { status: 'active', text: `${time.minutes}m ${time.seconds}s left`, color: 'text-orange-500' };
   };
 
+  const getEventJoinRequests = (eventId: string) => {
+    return joinRequests.filter(request => request.eventId === eventId);
+  };
+
+  const getEventUnreadJoinCount = (eventId: string) => {
+    return joinRequests.filter(request => request.eventId === eventId && !request.isRead).length;
+  };
+
   const Pagination: React.FC = () => {
     const totalPages = getTotalPages();
     
@@ -160,7 +198,6 @@ const Dashboard: React.FC = () => {
 
     return (
       <div className="flex flex-col sm:flex-row items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-4 sm:space-y-0">
-       
         <div className="text-sm text-gray-500 dark:text-gray-400">
           Showing {startItem} to {endItem} of {totalItems} events
         </div>
@@ -314,11 +351,18 @@ const Dashboard: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                  <Users className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400" />
+                  <MessageSquare className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="ml-3 sm:ml-4 min-w-0">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Public Events</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{publicEvents}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">Join Requests</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{joinRequests.length}</p>
+                    {unreadJoinCount > 0 && (
+                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                        {unreadJoinCount}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -387,9 +431,13 @@ const Dashboard: React.FC = () => {
           ) : (
             <>
               {/* Desktop Grid View */}
-              <div className="hidden lg:grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+              <div className="hidden lg:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {paginatedEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
+                  const eventJoinRequests = getEventJoinRequests(event.id);
+                  const unreadJoinRequestCount = getEventUnreadJoinCount(event.id);
+                  const showingJoinRequests = showJoinRequests.has(event.id);
+                  
                   return (
                     <div
                       key={event.id}
@@ -439,7 +487,7 @@ const Dashboard: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center space-x-2">
                             <span className={`px-2 py-1 text-xs rounded-full ${
                               event.isPublic 
@@ -448,8 +496,22 @@ const Dashboard: React.FC = () => {
                             }`}>
                               {event.isPublic ? 'Public' : 'Private'}
                             </span>
+                            {eventJoinRequests.length > 0 && (
+                              <div className="flex items-center space-x-1">
+                                <span className="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-full">
+                                  {eventJoinRequests.length} joined
+                                </span>
+                                {unreadJoinRequestCount > 0 && (
+                                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                    {unreadJoinRequestCount}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
+                        </div>
 
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <Link
                               to={`/event/${event.id}`}
@@ -476,6 +538,19 @@ const Dashboard: React.FC = () => {
                             >
                               <Edit className="w-4 h-4" />
                             </Link>
+                            {eventJoinRequests.length > 0 && (
+                              <button
+                                onClick={() => toggleJoinRequests(event.id)}
+                                className={`p-2 transition-colors duration-200 ${
+                                  showingJoinRequests
+                                    ? 'text-purple-600 dark:text-purple-400'
+                                    : 'text-gray-400 hover:text-purple-600 dark:hover:text-purple-400'
+                                }`}
+                                title="View Join Requests"
+                              >
+                                <MessageSquare className="w-4 h-4" />
+                              </button>
+                            )}
                             <button
                               onClick={() => handleDeleteEvent(event)}
                               className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
@@ -485,6 +560,17 @@ const Dashboard: React.FC = () => {
                             </button>
                           </div>
                         </div>
+
+                        {/* Join Requests Section */}
+                        {showingJoinRequests && eventJoinRequests.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <EventJoinRequests
+                              event={event}
+                              joinRequests={eventJoinRequests}
+                              onRequestUpdate={loadUserData}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -492,10 +578,13 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Mobile Card View */}
-              <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-2 space-y-4">
+              <div className="lg:hidden grid grid-cols-1 gap-2 space-y-4">
                 {paginatedEvents.map((event) => {
                   const eventStatus = getEventStatus(event.eventDate);
                   const isExpanded = expandedCards.has(event.id);
+                  const eventJoinRequests = getEventJoinRequests(event.id);
+                  const unreadJoinRequestCount = getEventUnreadJoinCount(event.id);
+                  const showingJoinRequests = showJoinRequests.has(event.id);
                   
                   return (
                     <div
@@ -519,6 +608,18 @@ const Dashboard: React.FC = () => {
                               <span className={`px-2 py-1 text-xs font-medium rounded-full bg-white border ${eventStatus.color}`}>
                                 {eventStatus.text}
                               </span>
+                              {eventJoinRequests.length > 0 && (
+                                <div className="flex items-center space-x-1">
+                                  <span className="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-full">
+                                    {eventJoinRequests.length}
+                                  </span>
+                                  {unreadJoinRequestCount > 0 && (
+                                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                      {unreadJoinRequestCount}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-2">
                               <Calendar className="w-4 h-4 mr-1" />
@@ -566,7 +667,7 @@ const Dashboard: React.FC = () => {
                               </div>
                             )}
                             
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-2 mb-4">
                               <Link
                                 to={`/event/${event.id}`}
                                 className="flex items-center justify-center px-3 py-2 text-blue-600 bg-blue-100 dark:bg-blue-900/20 hover:bg-blue-200 dark:hover:bg-blue-900/30 rounded-lg text-sm font-medium transition-colors duration-200"
@@ -600,6 +701,33 @@ const Dashboard: React.FC = () => {
                                 Delete
                               </button>
                             </div>
+
+                            {/* Join Requests Toggle */}
+                            {eventJoinRequests.length > 0 && (
+                              <button
+                                onClick={() => toggleJoinRequests(event.id)}
+                                className="w-full flex items-center justify-center px-3 py-2 text-purple-600 bg-purple-100 dark:bg-purple-900/20 hover:bg-purple-200 dark:hover:bg-purple-900/30 rounded-lg text-sm font-medium transition-colors duration-200 mb-4"
+                              >
+                                <MessageSquare className="w-4 h-4 mr-1" />
+                                {showingJoinRequests ? 'Hide' : 'Show'} Join Requests ({eventJoinRequests.length})
+                                {unreadJoinRequestCount > 0 && (
+                                  <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                    {unreadJoinRequestCount}
+                                  </span>
+                                )}
+                              </button>
+                            )}
+
+                            {/* Join Requests Section */}
+                            {showingJoinRequests && eventJoinRequests.length > 0 && (
+                              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <EventJoinRequests
+                                  event={event}
+                                  joinRequests={eventJoinRequests}
+                                  onRequestUpdate={loadUserData}
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

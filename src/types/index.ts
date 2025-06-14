@@ -87,6 +87,7 @@ export interface EventJoinRequest {
   phone?: string;
   message?: string;
   joinedAt: string;
+  isRead?: boolean; // Add read status for join requests
 }
 
 export interface EventType {

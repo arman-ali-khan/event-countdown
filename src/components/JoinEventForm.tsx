@@ -29,11 +29,12 @@ const JoinEventForm: React.FC<JoinEventFormProps> = ({ isOpen, onClose, eventTit
       // Save join request to localStorage (in real app, this would be sent to backend)
       const joinRequests = JSON.parse(localStorage.getItem('event-join-requests') || '[]');
       const newRequest = {
-        id: Date.now().toString(),
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         eventId,
         eventTitle,
         ...formData,
-        joinedAt: new Date().toISOString()
+        joinedAt: new Date().toISOString(),
+        isRead: false // Add read status for join requests
       };
       joinRequests.push(newRequest);
       localStorage.setItem('event-join-requests', JSON.stringify(joinRequests));
